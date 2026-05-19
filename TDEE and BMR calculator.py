@@ -1,56 +1,76 @@
-import math
+package healthcalculator;
 
-weightPounds = float(input('Enter weight in pounds: '))
-heightFeet = float(input('Enter height in feet: '))
-heightInches = float(input('Enter height in inches: '))
-Age = int(input('Enter age: '))
-sex = input("female or male?")
+import javax.jws.WebService;
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
 
+@WebService(serviceName = "CaloriesBurnService")
+public class CaloriesBurnService {
 
-KG = weightPounds / 2.20462
-CM = (heightFeet * 30.48) + (heightInches * 2.54)
+    @WebMethod(operationName = "calculateTDEE")
+    public String calculateTDEE(
+            @WebParam(name = "weightPounds") double weightPounds,
+            @WebParam(name = "heightFeet") double heightFeet,
+            @WebParam(name = "heightInches") double heightInches,
+            @WebParam(name = "age") int age,
+            @WebParam(name = "gender") String gender,
+            @WebParam(name = "minutesExercise") int minutes) {
 
-if sex == 'male':
-    BMR = (10 * KG) + (6.25 * CM) - (5 * Age) + 5
-elif sex == 'female':
-    BMR = (10 * KG) + (6.25 * CM) - (5 * Age) - 161
+        // Input Validation
+        if (weightPounds <= 0 || heightFeet <= 0 || age <= 0) {
+            return "SOAP Fault: Invalid input values.";
+        }
 
-minutes = int(input('Enter number of minutes: '))
+        // Convert units
+        double KG = weightPounds / 2.20462;
+        double CM = (heightFeet * 30.48) + (heightInches * 2.54);
 
+        // Calculate BMR
+        double BMR;
 
-if minutes <=0 or minutes <= 60:
-    print('You are sedentary.')
-    multiplier = 1.2
-elif minutes <= 90 or minutes <= 150:
-    print('You are light.')
-    multiplier = 1.375
-elif minutes <= 151 or minutes <= 300:
-    print('You are moderate.')
-    multiplier = 1.55
-elif minutes <= 301 or minutes <= 420:
-    print('You are very.')
-    multiplier = 1.725
-else:
-    print('You are extra.')
-    multiplier = 1.9
+        if (gender.equalsIgnoreCase("male")) {
+            BMR = (10 * KG) + (6.25 * CM) - (5 * age) + 5;
+        } else {
+            BMR = (10 * KG) + (6.25 * CM) - (5 * age) - 161;
+        }
 
-TDEE = math.ceil(BMR * multiplier)
+        // Activity multiplier
+        double multiplier;
 
-print(f'Your BMR is: {math.ceil(BMR)}')
-print(f'Your TDEE is: {math.ceil(TDEE)}')
+        if (minutes <= 60) {
+            multiplier = 1.2;
+        } else if (minutes <= 150) {
+            multiplier = 1.375;
+        } else if (minutes <= 300) {
+            multiplier = 1.55;
+        } else if (minutes <= 420) {
+            multiplier = 1.725;
+        } else {
+            multiplier = 1.9;
+        }
 
-goals = {
-    'maintenance': TDEE,
-    'mild_loss': TDEE - 250,
-    'moderate_loss': TDEE - 500,
-    'mild_gain': TDEE + 250,
-    'moderate_gain': TDEE + 500
+        // Calculate TDEE
+        double TDEE = Math.ceil(BMR * multiplier);
+
+        // Calorie goals
+        double mildLoss = TDEE - 250;
+        double moderateLoss = TDEE - 500;
+        double mildGain = TDEE + 250;
+        double moderateGain = TDEE + 500;
+
+        // Output
+        String result =
+                "===== Calories Burn Rate Report =====\n" +
+                "BMR: " + Math.ceil(BMR) + " kcal/day\n" +
+                "TDEE: " + TDEE + " kcal/day\n\n" +
+
+                "Calorie Goals:\n" +
+                "Maintenance: " + TDEE + " kcal/day\n" +
+                "Mild Weight Loss: " + mildLoss + " kcal/day\n" +
+                "Moderate Weight Loss: " + moderateLoss + " kcal/day\n" +
+                "Mild Weight Gain: " + mildGain + " kcal/day\n" +
+                "Moderate Weight Gain: " + moderateGain + " kcal/day";
+
+        return result;
+    }
 }
-
-print("\nCalorie Goals:")
-for goal, value in goals.items():
-    print(f"{goal.replace('_', ' ').capitalize()}: {value} kcal/day")
-
-
-
-
